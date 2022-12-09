@@ -66,7 +66,7 @@ class CongestionTaxCalculatorTest {
 
 
     int tax = congestionTaxCalculator.getTax(new Car(),dateList);
-    assertEquals(23,tax);
+    assertEquals(60,tax);
   }
 
   @Test
