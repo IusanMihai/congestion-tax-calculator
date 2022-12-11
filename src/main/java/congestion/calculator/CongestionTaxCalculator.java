@@ -9,19 +9,18 @@ import congestion.calculator.vehicle.Motorcycle;
 import congestion.calculator.vehicle.Tractor;
 import congestion.calculator.vehicle.Vehicle;
 import java.time.DayOfWeek;
-import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Arrays;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class CongestionTaxCalculator {
 
-    public static final Map<String, Integer> tollFreeVehicles = new HashMap<>();
+    private static final Map<String, Integer> tollFreeVehicles = new HashMap<>();
 
     static {
         tollFreeVehicles.put("Motorcycle", 0);
@@ -31,12 +30,39 @@ public class CongestionTaxCalculator {
         tollFreeVehicles.put("Foreign", 4);
         tollFreeVehicles.put("Military", 5);
     }
-    
+
     public int getTax(Vehicle vehicle, List<LocalDateTime> dates)
     {
-        if(isTollFreeVehicle(vehicle))
+        if(isTollFreeVehicle(vehicle) || (dates == null || dates.isEmpty()))
             return 0;
-        if(dates == null || dates.isEmpty())
+        Collections.sort(dates);
+        List<List<LocalDateTime>> listOfDatesPerDays = new ArrayList<>();
+
+        LocalDate currentDate = dates.get(0).toLocalDate();
+        List<LocalDateTime> currentDateList = new ArrayList<>();
+
+        for (LocalDateTime ldt : dates) {
+            if (!currentDate.isEqual(ldt.toLocalDate())) {
+                if (!currentDateList.isEmpty()) {
+                    listOfDatesPerDays.add(currentDateList);
+                }
+                currentDate = ldt.toLocalDate();
+                currentDateList = new ArrayList<>();
+            }
+            currentDateList.add(ldt);
+        }
+        listOfDatesPerDays.add(currentDateList);
+
+        int taxTotal = 0;
+        for (List<LocalDateTime> datesPerDay : listOfDatesPerDays){
+            taxTotal += getTaxForASingleDay(vehicle, datesPerDay);
+        }
+        return taxTotal;
+    }
+
+    private int getTaxForASingleDay(Vehicle vehicle, List<LocalDateTime> dates)
+    {
+        if (isTollFreeVehicle(vehicle) || (dates == null || dates.isEmpty()))
             return 0;
 
         Collections.sort(dates);
@@ -51,23 +77,17 @@ public class CongestionTaxCalculator {
             if (nextFee == 0)
                 continue;
 
-            long diffInMillies = localDateTimeToEpochMillis(date) - localDateTimeToEpochMillis(intervalStart);
-            long minutes = diffInMillies/1000/60;
-
-            if (minutes <= 60 && nextFee > 0)
-            {
+            long minutes = ChronoUnit.MINUTES.between(intervalStart, date);
+            if (minutes <= 60 && nextFee > 0) {
                 if (totalFee > 0) totalFee -= tempFee;
                 if (nextFee >= tempFee) tempFee = nextFee;
                 totalFee += tempFee;
-            }
-            else
-            {
+            } else {
                 intervalStart = date;
                 tempFee = nextFee;
                 totalFee += nextFee;
             }
-        }                
-      
+        }
         if (totalFee > 60) totalFee = 60;
         return totalFee;
     }
@@ -119,17 +139,6 @@ public class CongestionTaxCalculator {
                 (month == 12 && (dayOfMonth == 24 || dayOfMonth == 25 || dayOfMonth == 26|| dayOfMonth == 31));
         }
         return false;
-    }
-
-    public Long localDateTimeToEpochMillis(LocalDateTime ldt) {
-        return ldt.atZone(ZoneId.systemDefault())
-            .toInstant().toEpochMilli();
-    }
-
-    public LocalDateTime epochMillisToLocalDateTime(long epochMillis) {
-        return LocalDateTime.ofInstant(
-            Instant.ofEpochMilli(epochMillis),
-            ZoneId.systemDefault());
     }
 
     public Vehicle getVehicleByName(String vehicleName){
