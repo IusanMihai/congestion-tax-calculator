@@ -2,6 +2,8 @@
 
 Welcome the Volvo Cars Congestion Tax Calculator assignment.
 
-This repository contains a developer [assignment](ASSIGNMENT.md) used as a basis for candidate interview and evaluation.
+This is a solution for the developer [assignment](ASSIGNMENT.md) used as a basis for candidate interview and evaluation.
 
-Clone this repository to get started. Due to a number of reasons, not least privacy, you will be asked to zip your solution and mail it in, instead of submitting a pull-request.
+This solution is made in *Java* and uses *Spring Boot* and *Swagger UI*
+
+In the root folder there is a [questions](questions.md) section.
