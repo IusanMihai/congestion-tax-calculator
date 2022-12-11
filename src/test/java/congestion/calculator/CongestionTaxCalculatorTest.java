@@ -66,7 +66,7 @@ class CongestionTaxCalculatorTest {
 
 
     int tax = congestionTaxCalculator.getTax(new Car(),dateList);
-    assertEquals(60,tax);
+    assertEquals(89,tax);
   }
 
   @Test
@@ -77,11 +77,6 @@ class CongestionTaxCalculatorTest {
 
     for (int i = 0 ; i < dateList.size() ; i++){
       assertEquals(tollFeeList.get(i), congestionTaxCalculator.getTollFee(dateList.get(i), new Car()));
-    }
-
-    for (LocalDateTime ldt : dateList){
-      int tollFee = congestionTaxCalculator.getTollFee(ldt, new Car());
-      System.out.println("Date: " + ldt + " DayOfWeek: " + ldt.getDayOfWeek() + " Tax: " + tollFee);
     }
   }
 
